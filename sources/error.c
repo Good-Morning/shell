@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
+
+size_t strlen(const char*); // standart lib's sub
 
 void error(const char* error_str) {
 	if (-1 == write(2, error_str, strlen(error_str))) {

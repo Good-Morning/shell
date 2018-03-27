@@ -8,66 +8,91 @@
 #include "../headers/parser.h"
 #include "../headers/system.h"
 
-const int true = -1;
-const int false = 0;
+// boolean constants
+typedef ssize_t bool;
+const bool true = -1;
+const bool false = 0;
 
-int max(int a, int b) {
+// get maximum of 2 integers
+ssize_t max(ssize_t a, ssize_t b) {
 	return a < b ? b : a;
 }
 
 int main (int argc, char *argv[], char *envp[]) {
+	
+	// pointers to environment constants
 	path = get_env_var("PATH", envp);
 	home = get_env_var("HOME", envp);
 	
-	char* path_data = strdup(path);
+	// storage for pathes from $path
+	char* const path_data = strdup(path);
+
+	// getting pathes from $path and their maximum size
 	struct parsed_data pathes = parse(path_data, ':');
-	for (int i = 0; i < pathes.count; i++) {
+	for (size_t i = 0; i < pathes.count; i++) {
 		max_size_path = max(max_size_path, strlen(pathes.array[i]));
 	}
 
-	int terminated = false;
-	char *st = 0;
-	size_t size;
+	// if 'true' then terminate 'cmd'
+	bool terminated = false;
+
+	char *st = 0; // to store user's command
+	size_t size; // not used // size of user's command 
+
+	// storage for parsed arguments and programme name
 	struct parsed_data args;
 	args.array = 0;
 	
-	cur_dir = get_cur_dir(envp);
+	// current path to cwd
+	cur_dir = get_cur_dir();
+
+	// main loop
 	while (!terminated) {	
+
+		//free argument storage before using it
 		if (args.array) {
 			free(args.array);
 			args.array = 0;
 		}
-
+		
+		// welcome user to type command
 		printf("L:%s> ", cur_dir);
 		getline(&st, &size, stdin);
 
+		// extract substrings from 'st' separated by ' '(space)
 		args = parse(st, ' ');
 
+		// if the input is empty
 		if (args.count == 0) {
 			continue;
 		}
 		
+		// if 'exit' command occurred
 		if (!strcmp("exit", args.array[0])) {
 			terminated = true;
 			continue;
 		}
+
+		// if 'cd'(change directory) command occurred
 		if (!strcmp("cd", args.array[0])) {
-			cd(args, envp);
+			cd(args);
 			continue;
 		}
-
+		
+		// if no special command occurred
+		// then try to execute
 		launch(args, envp, pathes);
 	}
 
-	free(path_data);
-	free(pathes.array);
-	free(cur_dir);
-	cur_dir = 0;
+	// free resources
+	free((void*)path_data);
+	free((void*)pathes.array);
+	free((void*)cur_dir);
 	if (args.array) {
 		free(args.array);
-		args.array = 0;
 	}
 	
+	// everything is OK
 	return EXIT_SUCCESS;
 }
 
