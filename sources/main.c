@@ -7,6 +7,7 @@
 
 #include "../headers/parser.h"
 #include "../headers/system.h"
+#include "../headers/string.h"
 
 // boolean constants
 typedef ssize_t bool;
@@ -27,7 +28,7 @@ int main (int argc, char *argv[], char *envp[]) {
 	// storage for pathes from $path
 	char* const path_data = strdup(path);
 
-	// getting pathes from $path and their maximum size
+	// getting pathes from $path and their maximum sizes
 	struct parsed_data pathes = parse(path_data, ':');
 	for (size_t i = 0; i < pathes.count; i++) {
 		max_size_path = max(max_size_path, strlen(pathes.array[i]));
@@ -36,8 +37,8 @@ int main (int argc, char *argv[], char *envp[]) {
 	// if 'true' then terminate 'cmd'
 	bool terminated = false;
 
-	char *st = 0; // to store user's command
-	size_t size; // not used // size of user's command 
+	// to store user's command
+	char *st = 0; 
 
 	// storage for parsed arguments and programme name
 	struct parsed_data args;
@@ -51,13 +52,18 @@ int main (int argc, char *argv[], char *envp[]) {
 
 		//free argument storage before using it
 		if (args.array) {
+			free(st);
 			free(args.array);
 			args.array = 0;
 		}
 		
 		// welcome user to type command
 		printf("L:%s> ", cur_dir);
-		getline(&st, &size, stdin);
+		fflush(stdout);
+		if ((st = get_line()) == 0) {
+			terminated = true;
+			continue;
+		}
 
 		// extract substrings from 'st' separated by ' '(space)
 		args = parse(st, ' ');
@@ -90,6 +96,7 @@ int main (int argc, char *argv[], char *envp[]) {
 	free((void*)cur_dir);
 	if (args.array) {
 		free(args.array);
+		free(st);
 	}
 	
 	// everything is OK

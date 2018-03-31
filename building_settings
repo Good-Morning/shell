@@ -1,0 +1,4 @@
+
+// if 1 cmd will print errors of every attempt to execute programme by pathes in $path
+// if 0 cmd will print the last error of all attempts 
+#define OUTPUT_ERRORS_ON_EVERY_PATH_ATTEMPT 1
